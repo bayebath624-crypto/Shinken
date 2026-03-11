@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SHINKEN">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#e8c547">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png">
+<link rel="apple-touch-icon" sizes="144x144" href="icons/icon-144.png">
+<link rel="apple-touch-icon" sizes="120x120" href="icons/icon-128.png">
+<link rel="apple-touch-startup-image" href="icons/icon-512.png">
+
+<title>⚔️ SHINKEN — RPG Anime</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Noto+Sans+JP:wght@300;400;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --panel: #0f0f1a;
+    --border: #1e1e3a;
+    --accent: #e8c547;
+    --accent2: #7b5cff;
+    --red: #ff3b5c;
+    --blue: #3bc8ff;
+    --green: #3bff8a;
+    --white: #f0eeff;
+    --muted: #5a5a8a;
+    --hp-color: #ff3b5c;
+    --mp-color: #3bc8ff;
+    --xp-color: #e8c547;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── PARTICLES BG ── */
+  #particles {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    overflow: hidden;
+  }
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    animation: floatUp linear infinite;
+    opacity: 0;
+  }
+  @keyframes floatUp {
+    0% { transform: translateY(100vh) scale(0); opacity: 0; }
+    10% { opacity: 0.6; }
+    90% { opacity: 0.2; }
+    100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+  }
+
+  /* ── SCREENS ── */
+  .screen { display: none; position: relative; z-index: 1; }
+  .screen.active { display: flex; flex-direction: column; min-height: 100vh; }
+
+  /* ══════════════ TITLE SCREEN ══════════════ */
+  #title-screen {
+    align-items: center; justify-content: center;
+    background: radial-gradient(ellipse at center, #1a0a2e 0%, #0a0a0f 70%);
+  }
+
+  .title-glow {
+    text-align: center;
+    animation: titlePulse 3s ease-in-out infinite;
+  }
+  @keyframes titlePulse {
+    0%, 100% { filter: drop-shadow(0 0 20px #7b5cff88); }
+    50% { filter: drop-shadow(0 0 50px #e8c547bb) drop-shadow(0 0 80px #7b5cffaa); }
+  }
+
+  .title-jp {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: clamp(3rem, 10vw, 7rem);
+    font-weight: 700;
+    background: linear-gradient(135deg, #e8c547, #ff9b50, #ff3b5c);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 0.1em;
+    line-height: 1;
+  }
+  .title-sub {
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: clamp(0.8rem, 2vw, 1.2rem);
+    color: var(--accent2);
+    letter-spacing: 0.4em;
+    margin-top: 0.5rem;
+    opacity: 0.9;
+  }
+
+  .title-hero {
+    font-size: 8rem;
+    margin: 1.5rem 0;
+    animation: heroFloat 4s ease-in-out infinite;
+    filter: drop-shadow(0 0 30px #e8c547);
+  }
+  @keyframes heroFloat {
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    50% { transform: translateY(-15px) rotate(2deg); }
+  }
+
+  .btn-start {
+    margin-top: 2rem;
+    padding: 1rem 3rem;
+    background: linear-gradient(135deg, #7b5cff, #e8c547);
+    border: none;
+    border-radius: 4px;
+    color: #000;
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.2em;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .btn-start:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px #7b5cff88;
+  }
+  .btn-start::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transform: translateX(-100%);
+    animation: shine 2s infinite;
+  }
+  @keyframes shine {
+    0% { transform: translateX(-100%); }
+    50%, 100% { transform: translateX(100%); }
+  }
+
+  .title-version {
+    margin-top: 1.5rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+    letter-spacing: 0.2em;
+  }
+
+  /* ══════════════ CLASS SELECT ══════════════ */
+  #class-screen {
+    padding: 2rem;
+    align-items: center;
+    background: radial-gradient(ellipse at top, #0f0a1a 0%, #0a0a0f 60%);
+  }
+
+  .screen-title {
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: clamp(1.2rem, 4vw, 2rem);
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    margin-bottom: 0.5rem;
+    text-align: center;
+  }
+  .screen-sub {
+    color: var(--muted);
+    font-size: 0.9rem;
+    letter-spacing: 0.1em;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+
+  .class-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    max-width: 900px;
+    width: 100%;
+  }
+
+  .class-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .class-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent, rgba(255,255,255,0.03));
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .class-card:hover::before { opacity: 1; }
+  .class-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(232,197,71,0.2);
+  }
+  .class-card.selected {
+    border-color: var(--accent2);
+    box-shadow: 0 0 20px rgba(123,92,255,0.4);
+  }
+
+  .class-icon { font-size: 3.5rem; margin-bottom: 0.5rem; }
+  .class-name {
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: 1rem;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+  .class-desc { font-size: 0.85rem; color: var(--muted); line-height: 1.4; }
+  .class-stats {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .stat-tag {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  .name-input-wrap {
+    margin-top: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    max-width: 400px;
+  }
+  .name-input {
+    width: 100%;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.8rem 1rem;
+    color: var(--white);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.1em;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .name-input:focus { border-color: var(--accent); }
+  .name-input::placeholder { color: var(--muted); }
+
+  .btn-confirm {
+    padding: 0.8rem 2.5rem;
+    background: transparent;
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    color: var(--accent);
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: 0.9rem;
+    cursor: pointer;
+    letter-spacing: 0.2em;
+    transition: all 0.2s;
+  }
+  .btn-confirm:hover {
+    background: var(--accent);
+    color: #000;
+    box-shadow: 0 0 20px rgba(232,197,71,0.4);
+  }
+
+  /* ══════════════ GAME SCREEN ══════════════ */
+  #game-screen {
+    flex-direction: row;
+    min-height: 100vh;
+    gap: 0;
+  }
+
+  /* ── LEFT PANEL ── */
+  .panel-left {
+    width: 260px;
+    min-width: 260px;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    padding: 1.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    overflow-y: auto;
+  }
+
+  .player-portrait {
+    text-align: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .portrait-icon {
+    font-size: 4rem;
+    display: block;
+    animation: portraitBreath 3s ease-in-out infinite;
+    filter: drop-shadow(0 0 15px var(--accent));
+  }
+  @keyframes portraitBreath {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+  .player-name {
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: 0.95rem;
+    color: var(--accent);
+    margin-top: 0.5rem;
+  }
+  .player-class-badge {
+    display: inline-block;
+    background: rgba(123,92,255,0.2);
+    border: 1px solid var(--accent2);
+    border-radius: 3px;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.7rem;
+    color: var(--accent2);
+    letter-spacing: 0.1em;
+    margin-top: 0.3rem;
+  }
+  .level-badge {
+    display: inline-block;
+    background: rgba(232,197,71,0.15);
+    border: 1px solid var(--accent);
+    border-radius: 3px;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.7rem;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    margin-top: 0.3rem;
+    margin-left: 0.3rem;
+  }
+
+  .stat-bar-group { display: flex; flex-direction: column; gap: 0.6rem; }
+  .stat-bar-row { display: flex; flex-direction: column; gap: 0.2rem; }
+  .stat-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+  .stat-bar-label span:last-child { color: var(--white); }
+  .stat-bar-track {
+    height: 6px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .stat-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.5s ease;
+  }
+  .bar-hp .stat-bar-fill { background: linear-gradient(90deg, #ff3b5c, #ff6b7a); }
+  .bar-mp .stat-bar-fill { background: linear-gradient(90deg, #3bc8ff, #7bf0ff); }
+  .bar-xp .stat-bar-fill { background: linear-gradient(90deg, #e8c547, #fff07a); }
+
+  .stats-block {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+  .stat-item {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.5rem;
+    text-align: center;
+  }
+  .stat-val {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--white);
+  }
+  .stat-lbl { font-size: 0.65rem; color: var(--muted); letter-spacing: 0.05em; }
+
+  .gold-display {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.8rem;
+    background: rgba(232,197,71,0.08);
+    border: 1px solid rgba(232,197,71,0.3);
+    border-radius: 4px;
+  }
+  .gold-icon { font-size: 1.2rem; }
+  .gold-amount { font-size: 1rem; font-weight: 700; color: var(--accent); }
+  .gold-lbl { font-size: 0.7rem; color: var(--muted); margin-left: auto; }
+
+  /* ── MAIN AREA ── */
+  .panel-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── TOP BAR ── */
+  .top-bar {
+    background: rgba(15,15,26,0.95);
+    border-bottom: 1px solid var(--border);
+    padding: 0.7rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    backdrop-filter: blur(10px);
+    flex-wrap: wrap;
+  }
+  .zone-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.3rem 0.8rem;
+    background: rgba(123,92,255,0.1);
+    border: 1px solid rgba(123,92,255,0.3);
+    border-radius: 4px;
+    font-size: 0.85rem;
+  }
+  .zone-icon { font-size: 1rem; }
+  .zone-name { color: var(--accent2); font-weight: 600; letter-spacing: 0.05em; }
+  .step-counter {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  /* ── SCENE AREA ── */
+  .scene-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    gap: 1rem;
+    overflow-y: auto;
+  }
+
+  .scene-box {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .scene-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent), var(--red));
+  }
+
+  .scene-location {
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: 0.75rem;
+    color: var(--accent2);
+    letter-spacing: 0.3em;
+    margin-bottom: 0.8rem;
+  }
+  .scene-visual {
+    font-size: clamp(3rem, 8vw, 5rem);
+    text-align: center;
+    padding: 1rem 0;
+    animation: sceneBreath 4s ease-in-out infinite;
+  }
+  @keyframes sceneBreath {
+    0%, 100% { transform: scale(1); filter: drop-shadow(0 0 15px rgba(232,197,71,0.3)); }
+    50% { transform: scale(1.03); filter: drop-shadow(0 0 25px rgba(232,197,71,0.6)); }
+  }
+  .scene-text {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 0.95rem;
+    line-height: 1.8;
+    color: rgba(240,238,255,0.85);
+  }
+  .scene-text .highlight { color: var(--accent); font-weight: 700; }
+  .scene-text .danger { color: var(--red); font-weight: 700; }
+
+  /* CHOICES */
+  .choices-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+  .choice-btn {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.9rem 1.2rem;
+    color: var(--white);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: left;
+    letter-spacing: 0.03em;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .choice-btn::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent2);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .choice-btn:hover::before { opacity: 1; }
+  .choice-btn:hover {
+    border-color: var(--accent2);
+    background: rgba(123,92,255,0.1);
+    transform: translateX(4px);
+  }
+  .choice-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .choice-icon { font-size: 1.2rem; min-width: 1.5rem; }
+  .choice-cost {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: var(--mp-color);
+    background: rgba(59,200,255,0.1);
+    border: 1px solid rgba(59,200,255,0.3);
+    border-radius: 3px;
+    padding: 0.1rem 0.4rem;
+  }
+
+  /* ── COMBAT AREA ── */
+  .combat-arena {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    display: none;
+    position: relative;
+    overflow: hidden;
+  }
+  .combat-arena.active { display: block; }
+  .combat-arena::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, rgba(255,59,92,0.05) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .combat-title {
+    font-family: 'Cinzel Decorative', cursive;
+    color: var(--red);
+    font-size: 0.8rem;
+    letter-spacing: 0.3em;
+    text-align: center;
+    margin-bottom: 1rem;
+    animation: combatPulse 1s ease-in-out infinite;
+  }
+  @keyframes combatPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+
+  .combatants {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  .combatant { text-align: center; }
+  .combatant-icon { font-size: 3rem; margin-bottom: 0.5rem; display: block; }
+  .combatant.enemy .combatant-icon { animation: enemyShake 0.3s ease-in-out; }
+  .combatant-name {
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+  .combatant.player .combatant-name { color: var(--accent); }
+  .combatant.enemy .combatant-name { color: var(--red); }
+
+  .vs-text {
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: 1.5rem;
+    color: var(--red);
+    text-shadow: 0 0 20px var(--red);
+    animation: vsPulse 0.5s ease-in-out infinite alternate;
+  }
+  @keyframes vsPulse {
+    from { transform: scale(1); }
+    to { transform: scale(1.1); }
+  }
+
+  .combat-hp-bar { margin-top: 0.3rem; }
+
+  .combat-log {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.8rem;
+    max-height: 100px;
+    overflow-y: auto;
+    margin-bottom: 1rem;
+    font-size: 0.82rem;
+    line-height: 1.6;
+  }
+  .log-line { color: rgba(240,238,255,0.7); }
+  .log-line.dmg { color: var(--red); font-weight: 700; }
+  .log-line.heal { color: var(--green); }
+  .log-line.info { color: var(--accent); }
+  .log-line.enemy-dmg { color: #ff8a3b; }
+
+  .combat-actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.6rem;
+  }
+  .combat-btn {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 0.7rem;
+    color: var(--white);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  .combat-btn:hover:not(:disabled) {
+    background: rgba(123,92,255,0.15);
+    border-color: var(--accent2);
+  }
+  .combat-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .combat-btn.skill-btn { border-color: rgba(59,200,255,0.4); }
+  .combat-btn.flee-btn { border-color: rgba(255,59,92,0.3); color: var(--muted); }
+
+  /* ── LOG/MESSAGE AREA ── */
+  .message-toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: rgba(15,15,26,0.95);
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    padding: 0.8rem 1.5rem;
+    font-size: 0.95rem;
+    color: var(--accent);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    transition: transform 0.3s ease;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+    text-align: center;
+  }
+  .message-toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ── DAMAGE FLASH ── */
+  .damage-flash {
+    position: fixed; inset: 0;
+    background: rgba(255,59,92,0.15);
+    pointer-events: none;
+    z-index: 99;
+    opacity: 0;
+    transition: opacity 0.1s;
+  }
+  .damage-flash.show { opacity: 1; }
+
+  /* ── LEVEL UP MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(5px);
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-box {
+    background: var(--panel);
+    border: 1px solid var(--accent);
+    border-radius: 12px;
+    padding: 2.5rem;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 0 60px rgba(232,197,71,0.3);
+    animation: modalPop 0.3s ease;
+  }
+  @keyframes modalPop {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .modal-icon { font-size: 5rem; margin-bottom: 1rem; animation: modalSpin 1s ease; }
+  @keyframes modalSpin {
+    from { transform: rotate(-180deg) scale(0); }
+    to { transform: rotate(0) scale(1); }
+  }
+  .modal-title {
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: 1.5rem;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+  .modal-text { color: var(--muted); line-height: 1.6; margin-bottom: 1.5rem; }
+  .modal-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .modal-stat {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.5rem;
+  }
+  .modal-stat-val { font-size: 1rem; font-weight: 700; color: var(--green); }
+  .modal-stat-lbl { font-size: 0.7rem; color: var(--muted); }
+
+  /* ── GAME OVER ── */
+  #gameover-screen {
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(ellipse at center, #1a0008 0%, #0a0a0f 70%);
+    text-align: center;
+    padding: 2rem;
+    gap: 1.5rem;
+  }
+  .go-icon { font-size: 8rem; animation: goFloat 3s ease-in-out infinite; }
+  @keyframes goFloat {
+    0%, 100% { transform: translateY(0); opacity: 0.8; }
+    50% { transform: translateY(-10px); opacity: 1; }
+  }
+  .go-title {
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    color: var(--red);
+    text-shadow: 0 0 30px var(--red);
+  }
+  .go-sub { color: var(--muted); font-size: 1.1rem; max-width: 400px; line-height: 1.6; }
+  .go-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    max-width: 400px;
+    width: 100%;
+  }
+  .go-stat {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem;
+  }
+  .go-stat-val { font-size: 1.5rem; font-weight: 700; color: var(--white); }
+  .go-stat-lbl { font-size: 0.7rem; color: var(--muted); letter-spacing: 0.1em; }
+
+  /* RESPONSIVE */
+  @media (max-width: 700px) {
+    #game-screen { flex-direction: column; }
+    .panel-left { width: 100%; min-width: unset; border-right: none; border-bottom: 1px solid var(--border); flex-direction: row; flex-wrap: wrap; padding: 0.8rem; gap: 0.8rem; }
+    .player-portrait { border-bottom: none; border-right: 1px solid var(--border); padding: 0 1rem 0 0; }
+    .stat-bar-group { flex: 1; min-width: 160px; }
+    .stats-block { display: none; }
+  }
+
+  /* ── iOS PWA OPTIMIZATIONS ── */
+  body {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .choice-btn, .combat-btn, .btn-start, .btn-confirm {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    min-height: 44px;
+  }
+  /* Bigger touch targets on mobile */
+  @media (max-width: 480px) {
+    .choice-btn { padding: 1rem 1.2rem; font-size: 1rem; }
+    .combat-btn { padding: 1rem; font-size: 1rem; min-height: 52px; }
+    .panel-left { padding: 0.6rem; }
+    .scene-area { padding: 0.8rem; }
+    .combat-actions { grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+    .title-hero { font-size: 5rem; }
+    .class-grid { grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+    .class-card { padding: 1rem; }
+    .class-icon { font-size: 2.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<div id="particles"></div>
+<div class="damage-flash" id="dmgFlash"></div>
+<div class="message-toast" id="toast"></div>
+
+<!-- LEVEL UP MODAL -->
+<div class="modal-overlay" id="levelModal">
+  <div class="modal-box">
+    <div class="modal-icon">⭐</div>
+    <div class="modal-title" id="modalTitle">NIVEAU SUPÉRIEUR !</div>
+    <div class="modal-text" id="modalText">Tu as grandi en puissance !</div>
+    <div class="modal-stats" id="modalStats"></div>
+    <button class="btn-confirm" onclick="closeLevelModal()">CONTINUER →</button>
+  </div>
+</div>
+
+<!-- ══ TITLE SCREEN ══ -->
+<div id="title-screen" class="screen active">
+  <div class="title-glow">
+    <div class="title-jp">真剣</div>
+    <div class="title-sub">SHINKEN — RPG ANIME</div>
+    <div class="title-hero">⚔️</div>
+    <button class="btn-start" onclick="showScreen('class-screen')">COMMENCER L'AVENTURE</button>
+    <div class="title-version">v1.0 • RPG AVENTURE • PROGRESSION COMPLÈTE</div>
+  </div>
+</div>
+
+<!-- ══ CLASS SELECT SCREEN ══ -->
+<div id="class-screen" class="screen">
+  <div class="screen-title">CHOISIS TON DESTIN</div>
+  <div class="screen-sub">Chaque classe forge une légende différente</div>
+  <div class="class-grid">
+    <div class="class-card" onclick="selectClass('samurai')" id="cls-samurai">
+      <div class="class-icon">⚔️</div>
+      <div class="class-name">Samouraï</div>
+      <div class="class-desc">Maître du katana, défenseur de l'honneur. Force et endurance hors pair.</div>
+      <div class="class-stats">
+        <span class="stat-tag">⚔️ ATK ++</span>
+        <span class="stat-tag">🛡️ DEF ++</span>
+        <span class="stat-tag">💠 MP -</span>
+      </div>
+    </div>
+    <div class="class-card" onclick="selectClass('mage')" id="cls-mage">
+      <div class="class-icon">🔮</div>
+      <div class="class-name">Mage</div>
+      <div class="class-desc">Maîtrise des arts ésotériques. Puissance magique dévastatrice.</div>
+      <div class="class-stats">
+        <span class="stat-tag">💠 MP +++</span>
+        <span class="stat-tag">⚡ SPE ++</span>
+        <span class="stat-tag">🛡️ DEF -</span>
+      </div>
+    </div>
+    <div class="class-card" onclick="selectClass('ninja')" id="cls-ninja">
+      <div class="class-icon">🥷</div>
+      <div class="class-name">Ninja</div>
+      <div class="class-desc">Ombre et vitesse. Esquive parfaite, frappe critique dévastatrice.</div>
+      <div class="class-stats">
+        <span class="stat-tag">⚡ SPE +++</span>
+        <span class="stat-tag">🎯 CRT ++</span>
+        <span class="stat-tag">❤️ HP -</span>
+      </div>
+    </div>
+    <div class="class-card" onclick="selectClass('oni')" id="cls-oni">
+      <div class="class-icon">👹</div>
+      <div class="class-name">Oni</div>
+      <div class="class-desc">Démon mi-humain. Puissance brute et régénération naturelle.</div>
+      <div class="class-stats">
+        <span class="stat-tag">❤️ HP +++</span>
+        <span class="stat-tag">⚔️ ATK ++</span>
+        <span class="stat-tag">⚡ SPE -</span>
+      </div>
+    </div>
+  </div>
+  <div class="name-input-wrap">
+    <input type="text" class="name-input" id="heroName" placeholder="ENTRE TON NOM DE GUERRIER" maxlength="16">
+    <button class="btn-confirm" onclick="startGame()">FORGER SA LÉGENDE →</button>
+  </div>
+</div>
+
+<!-- ══ GAME SCREEN ══ -->
+<div id="game-screen" class="screen">
+  <!-- LEFT PANEL -->
+  <div class="panel-left">
+    <div class="player-portrait">
+      <span class="portrait-icon" id="portrait">⚔️</span>
+      <div class="player-name" id="displayName">Guerrier</div>
+      <div>
+        <span class="player-class-badge" id="classBadge">SAMOURAÏ</span>
+        <span class="level-badge" id="levelBadge">LV.1</span>
+      </div>
+    </div>
+    <div class="stat-bar-group">
+      <div class="stat-bar-row bar-hp">
+        <div class="stat-bar-label"><span>❤️ PV</span><span id="hpText">100/100</span></div>
+        <div class="stat-bar-track"><div class="stat-bar-fill" id="hpBar" style="width:100%"></div></div>
+      </div>
+      <div class="stat-bar-row bar-mp">
+        <div class="stat-bar-label"><span>💠 PM</span><span id="mpText">60/60</span></div>
+        <div class="stat-bar-track"><div class="stat-bar-fill" id="mpBar" style="width:100%"></div></div>
+      </div>
+      <div class="stat-bar-row bar-xp">
+        <div class="stat-bar-label"><span>⭐ EXP</span><span id="xpText">0/100</span></div>
+        <div class="stat-bar-track"><div class="stat-bar-fill" id="xpBar" style="width:0%"></div></div>
+      </div>
+    </div>
+    <div class="stats-block">
+      <div class="stat-item"><div class="stat-val" id="statAtk">12</div><div class="stat-lbl">⚔️ ATTAQUE</div></div>
+      <div class="stat-item"><div class="stat-val" id="statDef">8</div><div class="stat-lbl">🛡️ DÉFENSE</div></div>
+      <div class="stat-item"><div class="stat-val" id="statSpd">10</div><div class="stat-lbl">⚡ VITESSE</div></div>
+      <div class="stat-item"><div class="stat-val" id="statCrt">5</div><div class="stat-lbl">🎯 CRITIQUE</div></div>
+    </div>
+    <div class="gold-display">
+      <span class="gold-icon">🪙</span>
+      <span class="gold-amount" id="goldAmount">0</span>
+      <span class="gold-lbl">OR</span>
+    </div>
+  </div>
+
+  <!-- MAIN AREA -->
+  <div class="panel-main">
+    <div class="top-bar">
+      <div class="zone-badge">
+        <span class="zone-icon" id="zoneIcon">🌲</span>
+        <span class="zone-name" id="zoneName">FORÊT DES ESPRITS</span>
+      </div>
+      <div class="step-counter">Étape <span id="stepCount">1</span></div>
+    </div>
+
+    <div class="scene-area">
+      <!-- SCENE BOX -->
+      <div class="scene-box" id="sceneBox">
+        <div class="scene-location" id="sceneLocation">■ PROLOGUE</div>
+        <div class="scene-visual" id="sceneVisual">🌲</div>
+        <div class="scene-text" id="sceneText">Tu entres dans la Forêt des Esprits...</div>
+      </div>
+
+      <!-- COMBAT ARENA -->
+      <div class="combat-arena" id="combatArena">
+        <div class="combat-title">⚔ COMBAT EN COURS ⚔</div>
+        <div class="combatants">
+          <div class="combatant player">
+            <span class="combatant-icon" id="combatPlayerIcon">⚔️</span>
+            <div class="combatant-name" id="combatPlayerName">TU</div>
+            <div class="stat-bar-row bar-hp">
+              <div class="stat-bar-label"><span id="combatHpText">100/100</span></div>
+              <div class="stat-bar-track"><div class="stat-bar-fill" id="combatHpBar" style="width:100%"></div></div>
+            </div>
+          </div>
+          <div class="vs-text">VS</div>
+          <div class="combatant enemy">
+            <span class="combatant-icon" id="enemyIcon">👹</span>
+            <div class="combatant-name" id="enemyName">ENNEMI</div>
+            <div class="stat-bar-row bar-hp">
+              <div class="stat-bar-label"><span id="enemyHpText">50/50</span></div>
+              <div class="stat-bar-track"><div class="stat-bar-fill" id="enemyHpBar" style="width:100%"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="combat-log" id="combatLog"></div>
+        <div class="combat-actions">
+          <button class="combat-btn" onclick="combatAction('attack')">⚔️ Attaquer</button>
+          <button class="combat-btn skill-btn" id="skillBtn" onclick="combatAction('skill')">💠 Compétence</button>
+          <button class="combat-btn" onclick="combatAction('defend')">🛡️ Défendre</button>
+          <button class="combat-btn flee-btn" onclick="combatAction('flee')">💨 Fuir</button>
+        </div>
+      </div>
+
+      <!-- CHOICES -->
+      <div class="choices-grid" id="choicesGrid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ GAME OVER SCREEN ══ -->
+<div id="gameover-screen" class="screen">
+  <div class="go-icon">💀</div>
+  <div class="go-title">TU ES TOMBÉ</div>
+  <div class="go-sub">Même les plus grands héros connaissent la défaite. Ton honneur reste intact, guerrier.</div>
+  <div class="go-stats">
+    <div class="go-stat"><div class="go-stat-val" id="goLevel">1</div><div class="go-stat-lbl">NIVEAU</div></div>
+    <div class="go-stat"><div class="go-stat-val" id="goKills">0</div><div class="go-stat-lbl">VICTOIRES</div></div>
+    <div class="go-stat"><div class="go-stat-val" id="goGold">0</div><div class="go-stat-lbl">OR GAGNÉ</div></div>
+  </div>
+  <button class="btn-start" onclick="restartGame()">↺ RECOMMENCER</button>
+</div>
+
+<script>
+// ════════════════════════════════
+//  STATE
+// ════════════════════════════════
+const CLASSES = {
+  samurai: { icon:'⚔️', name:'Samouraï', hp:120, mp:50, atk:14, def:10, spd:9, crt:8, skill:'Coupe du Vent', skillDmg:2.2, skillMp:15 },
+  mage:    { icon:'🔮', name:'Mage',     hp:80,  mp:100,atk:10, def:6,  spd:12,crt:10,skill:'Foudre Arcane',skillDmg:2.8, skillMp:20 },
+  ninja:   { icon:'🥷', name:'Ninja',    hp:90,  mp:70, atk:12, def:7,  spd:18,crt:18,skill:'Mille Lames',  skillDmg:2.4, skillMp:18 },
+  oni:     { icon:'👹', name:'Oni',      hp:150, mp:40, atk:16, def:9,  spd:7, crt:6, skill:'Cri du Démon', skillDmg:2.0, skillMp:12 },
+};
+
+const ZONES = [
+  { name:'FORÊT DES ESPRITS', icon:'🌲' },
+  { name:'VILLAGE EN FLAMMES', icon:'🔥' },
+  { name:'TEMPLE MAUDIT',      icon:'⛩️' },
+  { name:'PLAINES DES OMBRES', icon:'🌑' },
+  { name:'SOMMET DU DESTIN',   icon:'🏔️' },
+];
+
+const ENEMIES = [
+  { name:'Esprit Sauvage', icon:'👻', hp:35, atk:8,  def:4,  xp:25, gold:10 },
+  { name:'Démon des Bois',  icon:'🌿', hp:50, atk:12, def:6,  xp:40, gold:15 },
+  { name:'Oni Cornu',       icon:'👹', hp:70, atk:16, def:8,  xp:60, gold:25 },
+  { name:'Samouraï Maudit', icon:'⚔️', hp:90, atk:20, def:12, xp:80, gold:35 },
+  { name:'Dragon Céleste',  icon:'🐉', hp:130,atk:26, def:15, xp:120,gold:60 },
+];
+
+const EVENTS = [
+  {
+    type:'explore',
+    visual:'🌲', location:'■ FORÊT PROFONDE',
+    text:'Tu avances dans la forêt quand tu entends un craquement. Une silhouette surgit des ombres !',
+    choices:[
+      { icon:'⚔️', text:'Dégainer et attaquer', action:'combat' },
+      { icon:'🏃', text:'Tenter de fuir en courant', action:'flee_event' },
+    ]
+  },
+  {
+    type:'camp',
+    visual:'🔥', location:'■ FEU DE CAMP',
+    text:'Tu découvres un feu de camp abandonné. Des rations et une fiole traînent encore au sol.',
+    choices:[
+      { icon:'🍱', text:'Manger les rations (+30 PV)', action:'heal_hp', val:30 },
+      { icon:'💠', text:'Boire la fiole (+25 PM)', action:'heal_mp', val:25 },
+      { icon:'👀', text:'Continuer sans t\'arrêter', action:'continue' },
+    ]
+  },
+  {
+    type:'merchant',
+    visual:'🏪', location:'■ MARCHAND ERRANT',
+    text:'Un vieux marchand sort de derrière un arbre. Il sourit mystérieusement et brandit ses marchandises.',
+    choices:[
+      { icon:'⚔️', text:'Acheter Épée Forgée (+3 ATK) — 30 Or', action:'buy_atk', cost:30 },
+      { icon:'🛡️', text:'Acheter Armure Légère (+3 DEF) — 25 Or', action:'buy_def', cost:25 },
+      { icon:'❤️', text:'Acheter Potion de Soin (PV +50) — 20 Or', action:'buy_hp', cost:20 },
+      { icon:'🚶', text:'Ignorer le marchand', action:'continue' },
+    ]
+  },
+  {
+    type:'shrine',
+    visual:'⛩️', location:'■ SANCTUAIRE ANCIEN',
+    text:'Tu arrives devant un sanctuaire millénaire. Une force mystique émane de l\'autel central.',
+    choices:[
+      { icon:'🙏', text:'Prier pour la puissance (+2 ATK, -10 PV)', action:'pray_atk' },
+      { icon:'🌟', text:'Méditer pour la sagesse (+10 PM max)', action:'meditate' },
+      { icon:'⚡', text:'Absorber l\'énergie (EXP +50)', action:'exp_bonus' },
+    ]
+  },
+  {
+    type:'fight',
+    visual:'⚔️', location:'■ EMBUSCADE',
+    text:'Des ombres bondissent depuis les toits ! Ils t\'ont tendu un piège. Prépare-toi au combat !',
+    choices:[
+      { icon:'⚔️', text:'Affronter les assaillants', action:'combat' },
+      { icon:'💨', text:'Créer une diversion et fuir', action:'flee_event', chance: 0.5 },
+    ]
+  },
+  {
+    type:'mystery',
+    visual:'🗡️', location:'■ ARME ABANDONNÉE',
+    text:'Une lame extraordinaire est plantée dans la pierre. Elle semble attendre son maître depuis des siècles.',
+    choices:[
+      { icon:'🗡️', text:'Tenter d\'arracher la lame (test de force)', action:'sword_trial' },
+      { icon:'🚶', text:'Respecter ce lieu sacré et continuer', action:'continue' },
+    ]
+  },
+];
+
+let player = {};
+let enemy = {};
+let inCombat = false;
+let isDefending = false;
+let combatAnimLock = false;
+let stepCount = 0;
+let kills = 0;
+let zoneIndex = 0;
+
+// ════════════════════════════════
+//  PARTICLES
+// ════════════════════════════════
+function spawnParticles() {
+  const cont = document.getElementById('particles');
+  for(let i = 0; i < 25; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random() * 4 + 1;
+    const colors = ['#e8c547','#7b5cff','#3bc8ff','#ff3b5c'];
+    p.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random()*100}%;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      animation-duration:${8+Math.random()*12}s;
+      animation-delay:${Math.random()*10}s;
+    `;
+    cont.appendChild(p);
+  }
+}
+
+// ════════════════════════════════
+//  UI HELPERS
+// ════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function toast(msg, dur=2500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), dur);
+}
+
+function flashDamage() {
+  const f = document.getElementById('dmgFlash');
+  f.classList.add('show');
+  setTimeout(() => f.classList.remove('show'), 200);
+}
+
+function updateHUD() {
+  document.getElementById('hpText').textContent = `${Math.ceil(player.hp)}/${player.maxHp}`;
+  document.getElementById('mpText').textContent = `${Math.ceil(player.mp)}/${player.maxMp}`;
+  document.getElementById('xpText').textContent = `${player.xp}/${player.xpNext}`;
+  document.getElementById('hpBar').style.width = `${(player.hp/player.maxHp)*100}%`;
+  document.getElementById('mpBar').style.width = `${(player.mp/player.maxMp)*100}%`;
+  document.getElementById('xpBar').style.width = `${(player.xp/player.xpNext)*100}%`;
+  document.getElementById('statAtk').textContent = player.atk;
+  document.getElementById('statDef').textContent = player.def;
+  document.getElementById('statSpd').textContent = player.spd;
+  document.getElementById('statCrt').textContent = player.crt;
+  document.getElementById('goldAmount').textContent = player.gold;
+  document.getElementById('levelBadge').textContent = `LV.${player.level}`;
+  document.getElementById('combatHpText').textContent = `${Math.ceil(player.hp)}/${player.maxHp}`;
+  document.getElementById('combatHpBar').style.width = `${(player.hp/player.maxHp)*100}%`;
+}
+
+function updateEnemyHUD() {
+  document.getElementById('enemyHpText').textContent = `${Math.max(0,Math.ceil(enemy.hp))}/${enemy.maxHp}`;
+  document.getElementById('enemyHpBar').style.width = `${Math.max(0,(enemy.hp/enemy.maxHp)*100)}%`;
+}
+
+function addLog(msg, type='') {
+  const log = document.getElementById('combatLog');
+  const line = document.createElement('div');
+  line.className = `log-line ${type}`;
+  line.textContent = msg;
+  log.appendChild(line);
+  log.scrollTop = log.scrollHeight;
+}
+
+// ════════════════════════════════
+//  CLASS SELECT
+// ════════════════════════════════
+let selectedClass = 'samurai';
+
+function selectClass(cls) {
+  document.querySelectorAll('.class-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById(`cls-${cls}`).classList.add('selected');
+  selectedClass = cls;
+}
+
+// ════════════════════════════════
+//  INIT GAME
+// ════════════════════════════════
+function startGame() {
+  const name = document.getElementById('heroName').value.trim() || 'Shinken';
+  const cls = CLASSES[selectedClass];
+
+  player = {
+    name, classKey: selectedClass, classData: cls,
+    level: 1, xp: 0, xpNext: 100,
+    hp: cls.hp, maxHp: cls.hp,
+    mp: cls.mp, maxMp: cls.mp,
+    atk: cls.atk, def: cls.def, spd: cls.spd, crt: cls.crt,
+    gold: 0,
+  };
+
+  document.getElementById('portrait').textContent = cls.icon;
+  document.getElementById('displayName').textContent = name;
+  document.getElementById('classBadge').textContent = cls.name.toUpperCase();
+  document.getElementById('combatPlayerIcon').textContent = cls.icon;
+  document.getElementById('combatPlayerName').textContent = name;
+  document.getElementById('skillBtn').textContent = `💠 ${cls.skill}`;
+
+  stepCount = 0; kills = 0; zoneIndex = 0;
+  updateHUD();
+  showScreen('game-screen');
+  nextScene();
+}
+
+// ════════════════════════════════
+//  SCENE ENGINE
+// ════════════════════════════════
+function nextScene() {
+  stepCount++;
+  document.getElementById('stepCount').textContent = stepCount;
+
+  // Zone progression
+  zoneIndex = Math.min(Math.floor((stepCount-1) / 4), ZONES.length - 1);
+  const zone = ZONES[zoneIndex];
+  document.getElementById('zoneIcon').textContent = zone.icon;
+  document.getElementById('zoneName').textContent = zone.name;
+
+  hideCombat();
+  inCombat = false;
+
+  // Force combat every 3 steps
+  if (stepCount % 3 === 0) {
+    const evt = { type:'fight', visual:'⚔️', location:'■ EMBUSCADE',
+      text:'Des ombres bondissent depuis les ombres ! Ils t\'ont tendu un piège.',
+      choices:[{ icon:'⚔️', text:'Affronter les ennemis', action:'combat' }]
+    };
+    renderScene(evt);
+  } else {
+    const evt = EVENTS[Math.floor(Math.random() * EVENTS.length)];
+    renderScene(evt);
+  }
+}
+
+function renderScene(evt) {
+  document.getElementById('sceneLocation').textContent = evt.location;
+  document.getElementById('sceneVisual').textContent = evt.visual;
+  document.getElementById('sceneText').innerHTML = evt.text;
+  hideCombat();
+
+  const grid = document.getElementById('choicesGrid');
+  grid.innerHTML = '';
+
+  evt.choices.forEach(ch => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    let inner = `<span class="choice-icon">${ch.icon}</span>${ch.text}`;
+    if(ch.cost) inner += `<span class="choice-cost">🪙 ${ch.cost} Or</span>`;
+    btn.innerHTML = inner;
+    btn.onclick = () => handleChoice(ch);
+    grid.appendChild(btn);
+  });
+}
+
+function handleChoice(ch) {
+  switch(ch.action) {
+    case 'combat': startCombat(); break;
+    case 'flee_event':
+      if(!ch.chance || Math.random() > ch.chance) {
+        toast('🏃 Tu t\'es échappé !'); nextScene();
+      } else {
+        toast('⚠️ Impossible de fuir !'); startCombat();
+      }
+      break;
+    case 'heal_hp':
+      const h = Math.min(ch.val, player.maxHp - player.hp);
+      player.hp = Math.min(player.hp + ch.val, player.maxHp);
+      toast(`❤️ +${h} PV récupérés !`); updateHUD(); nextScene(); break;
+    case 'heal_mp':
+      player.mp = Math.min(player.mp + ch.val, player.maxMp);
+      toast(`💠 +${ch.val} PM récupérés !`); updateHUD(); nextScene(); break;
+    case 'continue': nextScene(); break;
+    case 'buy_atk':
+      if(player.gold >= 30) { player.gold -= 30; player.atk += 3; toast('⚔️ Épée achetée ! +3 ATK'); updateHUD(); }
+      else toast('🪙 Pas assez d\'or !');
+      nextScene(); break;
+    case 'buy_def':
+      if(player.gold >= 25) { player.gold -= 25; player.def += 3; toast('🛡️ Armure achetée ! +3 DEF'); updateHUD(); }
+      else toast('🪙 Pas assez d\'or !');
+      nextScene(); break;
+    case 'buy_hp':
+      if(player.gold >= 20) { player.gold -= 20; player.hp = Math.min(player.hp+50, player.maxHp); toast('❤️ Potion bue ! +50 PV'); updateHUD(); }
+      else toast('🪙 Pas assez d\'or !');
+      nextScene(); break;
+    case 'pray_atk':
+      player.atk += 2; player.hp = Math.max(1, player.hp - 10);
+      toast('⚔️ +2 ATK, mais -10 PV...'); updateHUD(); nextScene(); break;
+    case 'meditate':
+      player.maxMp += 10; player.mp = Math.min(player.mp + 10, player.maxMp);
+      toast('💠 +10 PM maximum !'); updateHUD(); nextScene(); break;
+    case 'exp_bonus':
+      gainXP(50); nextScene(); break;
+    case 'sword_trial':
+      if(player.atk >= 14) { player.atk += 4; toast('🗡️ La lame est tienne ! +4 ATK !'); updateHUD(); }
+      else toast('💪 Pas assez de force pour soulever la lame...');
+      nextScene(); break;
+  }
+}
+
+// ════════════════════════════════
+//  COMBAT
+// ════════════════════════════════
+function getEnemy() {
+  const tier = Math.min(Math.floor(player.level / 2), ENEMIES.length - 1);
+  const base = ENEMIES[tier];
+  const scale = 1 + (player.level - 1) * 0.15;
+  return {
+    ...base,
+    hp: Math.round(base.hp * scale),
+    maxHp: Math.round(base.hp * scale),
+    atk: Math.round(base.atk * scale),
+    def: Math.round(base.def * scale),
+    xp: Math.round(base.xp * scale),
+    gold: Math.round(base.gold * scale),
+  };
+}
+
+function startCombat() {
+  enemy = getEnemy();
+  inCombat = true;
+  isDefending = false;
+  combatAnimLock = false;
+
+  document.getElementById('enemyIcon').textContent = enemy.icon;
+  document.getElementById('enemyName').textContent = enemy.name.toUpperCase();
+  updateEnemyHUD();
+  updateHUD();
+
+  document.getElementById('combatLog').innerHTML = '';
+  addLog(`⚔️ ${enemy.name} apparaît !`, 'info');
+
+  document.getElementById('choicesGrid').innerHTML = '';
+  document.getElementById('combatArena').classList.add('active');
+  document.getElementById('sceneBox').style.display = 'none';
+
+  checkSkillAvail();
+}
+
+function hideCombat() {
+  document.getElementById('combatArena').classList.remove('active');
+  document.getElementById('sceneBox').style.display = '';
+}
+
+function checkSkillAvail() {
+  const btn = document.getElementById('skillBtn');
+  btn.disabled = player.mp < player.classData.skillMp;
+}
+
+function combatAction(action) {
+  if(combatAnimLock || !inCombat) return;
+  combatAnimLock = true;
+
+  let dmg = 0;
+  let msg = '';
+
+  if(action === 'flee') {
+    const chance = player.spd / (player.spd + enemy.atk);
+    if(Math.random() < chance) {
+      addLog('💨 Tu t\'es échappé !', 'info');
+      inCombat = false;
+      setTimeout(() => { hideCombat(); nextScene(); }, 800);
+      return;
+    } else {
+      addLog('⚠️ Fuite impossible !', 'dmg');
+      combatAnimLock = false;
+      enemyTurn();
+      return;
+    }
+  }
+
+  if(action === 'defend') {
+    isDefending = true;
+    addLog('🛡️ Tu te mets en position défensive.', 'info');
+    setTimeout(() => { combatAnimLock = false; enemyTurn(); }, 500);
+    return;
+  }
+
+  if(action === 'attack') {
+    const isCrit = Math.random() * 100 < player.crt;
+    dmg = Math.max(1, player.atk - Math.floor(enemy.def * 0.5) + Math.floor(Math.random()*5));
+    if(isCrit) { dmg = Math.round(dmg * 1.8); msg = `🎯 CRITIQUE ! `; }
+    enemy.hp -= dmg;
+    addLog(`${msg}⚔️ Tu inflige ${dmg} dégâts à ${enemy.name} !`, 'dmg');
+  }
+
+  if(action === 'skill') {
+    if(player.mp < player.classData.skillMp) { combatAnimLock = false; return; }
+    player.mp -= player.classData.skillMp;
+    dmg = Math.max(1, Math.round(player.atk * player.classData.skillDmg - enemy.def));
+    enemy.hp -= dmg;
+    addLog(`💠 ${player.classData.skill} : ${dmg} dégâts magiques !`, 'info');
+    updateHUD();
+    checkSkillAvail();
+  }
+
+  updateEnemyHUD();
+
+  if(enemy.hp <= 0) {
+    addLog(`✨ ${enemy.name} est vaincu !`, 'info');
+    kills++;
+    gainXP(enemy.xp);
+    player.gold += enemy.gold;
+    player.hp = Math.min(player.hp + 15, player.maxHp);
+    updateHUD();
+    toast(`🏆 Victoire ! +${enemy.xp} EXP +${enemy.gold} Or`);
+    inCombat = false;
+    setTimeout(() => { hideCombat(); nextScene(); }, 1200);
+    return;
+  }
+
+  setTimeout(() => { combatAnimLock = false; isDefending = false; enemyTurn(); }, 400);
+}
+
+function enemyTurn() {
+  if(!inCombat) return;
+  const def = isDefending ? Math.round(player.def * 1.6) : player.def;
+  let dmg = Math.max(1, enemy.atk - Math.floor(def * 0.5) + Math.floor(Math.random()*4));
+  player.hp -= dmg;
+  flashDamage();
+  addLog(`💥 ${enemy.name} te frappe pour ${dmg} dégâts !`, 'enemy-dmg');
+  updateHUD();
+
+  if(player.hp <= 0) {
+    player.hp = 0;
+    updateHUD();
+    addLog('💀 Tu es tombé au combat...', 'dmg');
+    inCombat = false;
+    setTimeout(gameOver, 1500);
+  }
+}
+
+// ════════════════════════════════
+//  XP & LEVEL UP
+// ════════════════════════════════
+function gainXP(amount) {
+  player.xp += amount;
+  while(player.xp >= player.xpNext) {
+    player.xp -= player.xpNext;
+    levelUp();
+  }
+  updateHUD();
+}
+
+function levelUp() {
+  player.level++;
+  player.xpNext = Math.round(player.xpNext * 1.4);
+
+  const gains = {
+    maxHp: Math.round(15 + player.classData.hp * 0.08),
+    maxMp: Math.round(5 + player.classData.mp * 0.05),
+    atk: Math.round(1 + player.classData.atk * 0.06),
+    def: Math.round(1 + player.classData.def * 0.05),
+  };
+
+  player.maxHp += gains.maxHp; player.hp = Math.min(player.hp + gains.maxHp, player.maxHp);
+  player.maxMp += gains.maxMp; player.mp = Math.min(player.mp + gains.maxMp, player.maxMp);
+  player.atk += gains.atk;
+  player.def += gains.def;
+
+  document.getElementById('modalTitle').textContent = `NIVEAU ${player.level} !`;
+  document.getElementById('modalText').textContent = `${player.name} grandit en puissance et en sagesse.`;
+  document.getElementById('modalStats').innerHTML = `
+    <div class="modal-stat"><div class="modal-stat-val">+${gains.maxHp}</div><div class="modal-stat-lbl">PV MAX</div></div>
+    <div class="modal-stat"><div class="modal-stat-val">+${gains.maxMp}</div><div class="modal-stat-lbl">PM MAX</div></div>
+    <div class="modal-stat"><div class="modal-stat-val">+${gains.atk}</div><div class="modal-stat-lbl">ATTAQUE</div></div>
+    <div class="modal-stat"><div class="modal-stat-val">+${gains.def}</div><div class="modal-stat-lbl">DÉFENSE</div></div>
+  `;
+  document.getElementById('levelModal').classList.add('show');
+}
+
+function closeLevelModal() {
+  document.getElementById('levelModal').classList.remove('show');
+  updateHUD();
+}
+
+// ════════════════════════════════
+//  GAME OVER & RESTART
+// ════════════════════════════════
+function gameOver() {
+  document.getElementById('goLevel').textContent = player.level;
+  document.getElementById('goKills').textContent = kills;
+  document.getElementById('goGold').textContent = player.gold;
+  showScreen('gameover-screen');
+}
+
+function restartGame() {
+  showScreen('class-screen');
+}
+
+// ════════════════════════════════
+//  BOOT
+// ════════════════════════════════
+spawnParticles();
+selectClass('samurai');
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('✅ SW registered:', reg.scope))
+      .catch(err => console.log('SW error:', err));
+  });
+}
+// iOS install prompt helper
+window.addEventListener('DOMContentLoaded', () => {
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isStandalone = window.navigator.standalone;
+  if (isIOS && !isStandalone) {
+    setTimeout(() => {
+      const banner = document.createElement('div');
+      banner.style.cssText = `
+        position:fixed;bottom:0;left:0;right:0;z-index:9999;
+        background:#0f0f1a;border-top:1px solid #e8c547;
+        padding:1rem 1.5rem calc(1rem + env(safe-area-inset-bottom));
+        display:flex;align-items:center;gap:1rem;
+        font-family:'Rajdhani',sans-serif;font-size:0.9rem;color:#f0eeff;
+      `;
+      banner.innerHTML = \`
+        <span style="font-size:1.8rem">⚔️</span>
+        <div>
+          <div style="color:#e8c547;font-weight:700;letter-spacing:0.05em">INSTALLER SHINKEN</div>
+          <div style="color:#5a5a8a;font-size:0.8rem">Appuie sur <strong style="color:#3bc8ff">⎙ Partager</strong> puis <strong style="color:#3bc8ff">Sur l'écran d'accueil</strong></div>
+        </div>
+        <button onclick="this.parentElement.remove()" style="margin-left:auto;background:none;border:none;color:#5a5a8a;font-size:1.3rem;cursor:pointer;padding:0.3rem">✕</button>
+      \`;
+      document.body.appendChild(banner);
+    }, 3000);
+  }
+});
+</script>
+
+</body>
+</html>
